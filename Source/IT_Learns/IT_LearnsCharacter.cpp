@@ -9,6 +9,8 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "IT_Learns.h"
+#include "Engine/GameInstance.h"
+#include "UI/HorrorMenuSubsystem.h"
 
 AIT_LearnsCharacter::AIT_LearnsCharacter()
 {
@@ -82,8 +84,17 @@ void AIT_LearnsCharacter::LookInput(const FInputActionValue& Value)
 	// get the Vector2D look axis
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	// pass the axis values to the aim input
-	DoAim(LookAxisVector.X, LookAxisVector.Y);
+	float LookSensitivity = 1.0f;
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (const UHorrorMenuSubsystem* MenuSubsystem = GameInstance->GetSubsystem<UHorrorMenuSubsystem>())
+		{
+			LookSensitivity = MenuSubsystem->GetLookSensitivity();
+		}
+	}
+
+	// Apply the persisted look sensitivity to both mouse and controller look.
+	DoAim(LookAxisVector.X * LookSensitivity, LookAxisVector.Y * LookSensitivity);
 
 }
 

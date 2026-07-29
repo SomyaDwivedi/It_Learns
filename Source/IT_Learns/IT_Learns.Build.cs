@@ -19,16 +19,17 @@ public class IT_Learns : ModuleRules
 			"GameplayStateTreeModule",
 			"UMG",
 			"Slate",
+			"SlateCore",
 			"OnlineSubsystem",
-            "OnlineSubsystemUtils",	
-
-            "OnlineSubsystemEOS"
+			"OnlineSubsystemUtils",
+			"OnlineSubsystemEOS"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"IT_Learns",
+			"IT_Learns/UI",
 			"IT_Learns/Variant_Horror",
 			"IT_Learns/Variant_Horror/UI",
 			"IT_Learns/Variant_Shooter",
@@ -36,13 +37,5 @@ public class IT_Learns : ModuleRules
 			"IT_Learns/Variant_Shooter/UI",
 			"IT_Learns/Variant_Shooter/Weapons"
 		});
-
-		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
-
-		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
 	}
 }

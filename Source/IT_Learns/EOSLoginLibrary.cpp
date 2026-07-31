@@ -6,56 +6,12 @@
 #include "OnlineSessionSettings.h"
 #include "Online/OnlineSessionNames.h"
 
-#include "Engine/Engine.h"
-#include "Engine/GameInstance.h"
-#include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 static TSharedPtr<FOnlineSessionSearch> GEOSSessionSearch;
 
-static TWeakObjectPtr<UObject> GEOSLoginWorldContext;
-static FDelegateHandle GEOSPersistentLoginDelegateHandle;
 static FDelegateHandle GEOSPortalLoginDelegateHandle;
-
-static void CacheEOSLocalPlayerId(IOnlineIdentityPtr Identity, int32 LocalUserNum)
-{
-    if (!Identity.IsValid())
-    {
-        UE_LOG(LogTemp, Error, TEXT("Could not cache LocalPlayer UniqueNetId: Identity invalid"));
-        return;
-    }
-
-    if (!GEngine || !GEOSLoginWorldContext.IsValid())
-    {
-        UE_LOG(LogTemp, Error, TEXT("Could not cache LocalPlayer UniqueNetId: WorldContext invalid"));
-        return;
-    }
-
-    UWorld* World = GEngine->GetWorldFromContextObject(
-        GEOSLoginWorldContext.Get(),
-        EGetWorldErrorMode::LogAndReturnNull
-    );
-
-    if (!World || !World->GetGameInstance())
-    {
-        UE_LOG(LogTemp, Error, TEXT("Could not cache LocalPlayer UniqueNetId: World/GameInstance invalid"));
-        return;
-    }
-
-    ULocalPlayer* LocalPlayer = World->GetGameInstance()->GetFirstGamePlayer();
-    TSharedPtr<const FUniqueNetId> UniqueId = Identity->GetUniquePlayerId(LocalUserNum);
-
-    if (LocalPlayer && UniqueId.IsValid())
-    {
-        LocalPlayer->SetCachedUniqueNetId(UniqueId);
-        UE_LOG(LogTemp, Warning, TEXT("LocalPlayer UniqueNetId cached: %s"), *UniqueId->ToString());
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Could not cache LocalPlayer UniqueNetId"));
-    }
-}
 
 static void StartEOSAccountPortalLogin(IOnlineIdentityPtr Identity)
 {
@@ -85,7 +41,6 @@ static void StartEOSAccountPortalLogin(IOnlineIdentityPtr Identity)
                 if (bWasSuccessful)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("EOS AccountPortal Login Success. UserId: %s"), *UserId.ToString());
-                    //CacheEOSLocalPlayerId(Identity, LocalUserNum);
                 }
                 else
                 {
@@ -118,6 +73,8 @@ static void StartEOSAccountPortalLogin(IOnlineIdentityPtr Identity)
 
 void UEOSLoginLibrary::LoginEOS(UObject* WorldContextObject)
 {
+    (void)WorldContextObject;
+
     IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
 
     if (!Subsystem)
@@ -136,67 +93,9 @@ void UEOSLoginLibrary::LoginEOS(UObject* WorldContextObject)
         return;
     }
 
-    GEOSLoginWorldContext = WorldContextObject;
-    UE_LOG(LogTemp, Warning, TEXT("LOGIN CODE VERSION: FORCE ACCOUNTPORTAL DEBUG 007"));
+    UE_LOG(LogTemp, Warning, TEXT("LOGIN CODE VERSION: ACCOUNTPORTAL SAFE 008"));
     StartEOSAccountPortalLogin(Identity);
-    return;
-
-    if (GEOSPersistentLoginDelegateHandle.IsValid())
-    {
-        Identity->ClearOnLoginCompleteDelegate_Handle(0, GEOSPersistentLoginDelegateHandle);
-        GEOSPersistentLoginDelegateHandle.Reset();
-    }
-
-    GEOSPersistentLoginDelegateHandle = Identity->AddOnLoginCompleteDelegate_Handle(
-        0,
-        FOnLoginCompleteDelegate::CreateLambda(
-            [Identity](int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error)
-            {
-                if (Identity.IsValid() && GEOSPersistentLoginDelegateHandle.IsValid())
-                {
-                    Identity->ClearOnLoginCompleteDelegate_Handle(LocalUserNum, GEOSPersistentLoginDelegateHandle);
-                    GEOSPersistentLoginDelegateHandle.Reset();
-                }
-
-                if (bWasSuccessful)
-                {
-                    UE_LOG(LogTemp, Warning, TEXT("EOS PersistentAuth Login Success. UserId: %s"), *UserId.ToString());
-                   // CacheEOSLocalPlayerId(Identity, LocalUserNum);
-                    return;
-                }
-
-                UE_LOG(LogTemp, Warning, TEXT("EOS PersistentAuth Login Failed: %s"), *Error);
-                UE_LOG(LogTemp, Warning, TEXT("Falling back to AccountPortal login"));
-
-                StartEOSAccountPortalLogin(Identity);
-            }
-        )
-    );
-
-    UE_LOG(LogTemp, Warning, TEXT("LOGIN CODE VERSION: PERSISTENTAUTH THEN ACCOUNTPORTAL 006"));
-
-    FOnlineAccountCredentials Credentials;
-    Credentials.Type = TEXT("persistentauth");
-    Credentials.Id = TEXT("");
-    Credentials.Token = TEXT("");
-
-    bool bLoginStarted = Identity->Login(0, Credentials);
-
-    if (!bLoginStarted)
-    {
-        if (GEOSPersistentLoginDelegateHandle.IsValid())
-        {
-            Identity->ClearOnLoginCompleteDelegate_Handle(0, GEOSPersistentLoginDelegateHandle);
-            GEOSPersistentLoginDelegateHandle.Reset();
-        }
-
-        UE_LOG(LogTemp, Warning, TEXT("EOS PersistentAuth Login did not start"));
-        UE_LOG(LogTemp, Warning, TEXT("Falling back to AccountPortal login"));
-
-        StartEOSAccountPortalLogin(Identity);
-    }
 }
-
 void UEOSLoginLibrary::CreateEOSSession(UObject* WorldContextObject)
 {
     IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();

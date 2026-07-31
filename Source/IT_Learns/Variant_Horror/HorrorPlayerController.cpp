@@ -1,19 +1,20 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-
 #include "Variant_Horror/HorrorPlayerController.h"
+
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
-#include "InputMappingContext.h"
-#include "IT_LearnsCameraManager.h"
 #include "HorrorCharacter.h"
 #include "HorrorUI.h"
+#include "InputCoreTypes.h"
+#include "InputMappingContext.h"
 #include "IT_Learns.h"
+#include "IT_LearnsCameraManager.h"
+#include "UI/HorrorMenuSubsystem.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 
 AHorrorPlayerController::AHorrorPlayerController()
 {
-	// set the player camera manager class
 	PlayerCameraManagerClass = AIT_LearnsCameraManager::StaticClass();
 }
 
@@ -21,23 +22,30 @@ void AHorrorPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// only spawn touch controls on local player controllers
+	if (IsLocalPlayerController())
+	{
+		FInputModeGameOnly InputMode;
+		InputMode.SetConsumeCaptureMouseDown(false);
+		SetInputMode(InputMode);
+		bShowMouseCursor = false;
+		bEnableClickEvents = false;
+		bEnableMouseOverEvents = false;
+		ResetIgnoreMoveInput();
+		ResetIgnoreLookInput();
+	}
+
 	if (ShouldUseTouchControls() && IsLocalPlayerController())
 	{
-		// spawn the mobile controls widget
 		MobileControlsWidget = CreateWidget<UUserWidget>(this, MobileControlsWidgetClass);
 
 		if (MobileControlsWidget)
 		{
-			// add the controls to the player screen
 			MobileControlsWidget->AddToPlayerScreen(0);
-
-		} else {
-
-			UE_LOG(LogIT_Learns, Error, TEXT("Could not spawn mobile controls widget."));
-
 		}
-
+		else
+		{
+			UE_LOG(LogIT_Learns, Error, TEXT("Could not spawn mobile controls widget."));
+		}
 	}
 }
 
@@ -45,54 +53,84 @@ void AHorrorPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 
-	// only spawn UI on local player controllers
-	if (IsLocalPlayerController())
+	if (!IsLocalPlayerController())
 	{
-		// set up the UI for the character
-		if (AHorrorCharacter* HorrorCharacter = Cast<AHorrorCharacter>(aPawn))
-		{
-			// create the UI
-			if (!HorrorUI)
-			{
-				HorrorUI = CreateWidget<UHorrorUI>(this, HorrorUIClass);
-				HorrorUI->AddToViewport(0);
-			}
+		return;
+	}
 
+	FInputModeGameOnly InputMode;
+	InputMode.SetConsumeCaptureMouseDown(false);
+	SetInputMode(InputMode);
+	bShowMouseCursor = false;
+	bEnableClickEvents = false;
+	bEnableMouseOverEvents = false;
+	ResetIgnoreMoveInput();
+	ResetIgnoreLookInput();
+
+	if (AHorrorCharacter* HorrorCharacter = Cast<AHorrorCharacter>(aPawn))
+	{
+		if (!HorrorUI && HorrorUIClass)
+		{
+			HorrorUI = CreateWidget<UHorrorUI>(this, HorrorUIClass);
+			if (HorrorUI)
+			{
+				HorrorUI->AddToPlayerScreen(0);
+			}
+		}
+
+		if (HorrorUI)
+		{
 			HorrorUI->SetupCharacter(HorrorCharacter);
 		}
 	}
-	
 }
 
 void AHorrorPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	
-	// only add IMCs for local player controllers
-	if (IsLocalPlayerController())
+
+	if (!IsLocalPlayerController())
 	{
-		// Add Input Mapping Contexts
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		return;
+	}
+
+	InputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &AHorrorPlayerController::TogglePauseMenu);
+
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		for (UInputMappingContext* CurrentContext : DefaultMappingContexts)
 		{
-			for (UInputMappingContext* CurrentContext : DefaultMappingContexts)
+			if (CurrentContext)
 			{
 				Subsystem->AddMappingContext(CurrentContext, 0);
 			}
+		}
 
-			// only add these IMCs if we're not using mobile touch input
-			if (!ShouldUseTouchControls())
+		if (!ShouldUseTouchControls())
+		{
+			for (UInputMappingContext* CurrentContext : MobileExcludedMappingContexts)
 			{
-				for (UInputMappingContext* CurrentContext : MobileExcludedMappingContexts)
+				if (CurrentContext)
 				{
 					Subsystem->AddMappingContext(CurrentContext, 0);
 				}
 			}
 		}
-	}	
+	}
+}
+
+void AHorrorPlayerController::TogglePauseMenu()
+{
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UHorrorMenuSubsystem* MenuSubsystem = GameInstance->GetSubsystem<UHorrorMenuSubsystem>())
+		{
+			MenuSubsystem->TogglePauseMenu();
+		}
+	}
 }
 
 bool AHorrorPlayerController::ShouldUseTouchControls() const
 {
-	// are we on a mobile platform? Should we force touch?
 	return SVirtualJoystick::ShouldDisplayTouchInterface() || bForceTouchControls;
 }

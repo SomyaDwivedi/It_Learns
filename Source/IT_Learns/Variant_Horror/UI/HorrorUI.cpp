@@ -5,6 +5,13 @@
 
 void UHorrorUI::SetupCharacter(AHorrorCharacter *HorrorCharacter)
 {
+	if (BoundCharacter.IsValid())
+	{
+		BoundCharacter->OnSprintMeterUpdated.RemoveDynamic(this, &UHorrorUI::OnSprintMeterUpdated);
+		BoundCharacter->OnSprintStateChanged.RemoveDynamic(this, &UHorrorUI::OnSprintStateChanged);
+	}
+
+	BoundCharacter = HorrorCharacter;
 	if (!HorrorCharacter)
 	{
 		return;
@@ -15,6 +22,18 @@ void UHorrorUI::SetupCharacter(AHorrorCharacter *HorrorCharacter)
 
 	HorrorCharacter->OnSprintMeterUpdated.AddDynamic(this, &UHorrorUI::OnSprintMeterUpdated);
 	HorrorCharacter->OnSprintStateChanged.AddDynamic(this, &UHorrorUI::OnSprintStateChanged);
+}
+
+void UHorrorUI::NativeDestruct()
+{
+	if (BoundCharacter.IsValid())
+	{
+		BoundCharacter->OnSprintMeterUpdated.RemoveDynamic(this, &UHorrorUI::OnSprintMeterUpdated);
+		BoundCharacter->OnSprintStateChanged.RemoveDynamic(this, &UHorrorUI::OnSprintStateChanged);
+	}
+
+	BoundCharacter.Reset();
+	Super::NativeDestruct();
 }
 
 void UHorrorUI::OnSprintMeterUpdated(float Percent)

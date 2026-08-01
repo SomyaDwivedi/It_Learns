@@ -7,6 +7,7 @@
 #include "HorrorPlayerController.generated.h"
 
 class UInputMappingContext;
+class UHorrorObjectiveWidget;
 class UHorrorUI;
 
 /**
@@ -24,6 +25,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UHorrorUI> HorrorUI;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UHorrorObjectiveWidget> ObjectiveHUD;
 
 public:
 	AHorrorPlayerController();
@@ -45,10 +49,25 @@ protected:
 	UPROPERTY(EditAnywhere, Config, Category="Input|Touch Controls")
 	bool bForceTouchControls = false;
 
+	UPROPERTY(EditDefaultsOnly, Category="Horror|Interaction", meta=(ClampMin="100.0", Units="cm"))
+	float InteractionDistance = 325.0f;
+
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void SetPawn(APawn* InPawn) override;
 	virtual void OnPossess(APawn* aPawn) override;
 	virtual void SetupInputComponent() override;
+	virtual void PlayerTick(float DeltaTime) override;
 
 	void TogglePauseMenu();
+	void InitializeGameplayHUD();
+	void UpdateInteractionTarget();
+	void TryInteract();
+	bool IsServerInteractionValid(AActor* Target) const;
 	bool ShouldUseTouchControls() const;
+
+	UFUNCTION(Server, Reliable)
+	void ServerTryInteract(AActor* Target);
+
+	TWeakObjectPtr<AActor> CurrentInteractionTarget;
 };

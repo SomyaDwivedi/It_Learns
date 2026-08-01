@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 
 static TSharedPtr<FOnlineSessionSearch> GEOSSessionSearch;
+static const FName GEOSGameplayMapName(TEXT("/Game/Hospital/Maps/Lvl_Hospital"));
 
 static FDelegateHandle GEOSLoginDelegateHandle;
 static bool bGEOSLoginInProgress = false;
@@ -176,7 +177,7 @@ void UEOSLoginLibrary::CreateEOSSession(UObject* WorldContextObject)
 
     SessionSettings.Set(
         SETTING_MAPNAME,
-        FString("/Game/Variant_Horror/Lvl_Horror"),
+        GEOSGameplayMapName.ToString(),
         EOnlineDataAdvertisementType::ViaOnlineService
     );
 
@@ -193,7 +194,7 @@ void UEOSLoginLibrary::CreateEOSSession(UObject* WorldContextObject)
                 {
                     UGameplayStatics::OpenLevel(
                         WeakWorldContext.Get(),
-                        FName("/Game/Variant_Horror/Lvl_Horror"),
+                        GEOSGameplayMapName,
                         true,
                         FString("listen")
                     );

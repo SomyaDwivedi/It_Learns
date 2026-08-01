@@ -1,7 +1,10 @@
 Binaries
+Builds
 DerivedDataCache
 Intermediate
 Saved
+__pycache__/
+*.py[cod]
 .vscode
 .vs
 *.VC.db

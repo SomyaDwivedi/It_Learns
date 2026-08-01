@@ -18,4 +18,7 @@ public:
 
 	/** Constructor */
 	AHorrorGameMode();
+
+protected:
+	virtual void BeginPlay() override;
 };

@@ -31,6 +31,7 @@ public:
 	void OnSprintStateChanged(bool bSprinting);
 
 protected:
+	virtual void NativeDestruct() override;
 
 	/** Passes control to Blueprint to update the sprint meter widgets */
 	UFUNCTION(BlueprintImplementableEvent, Category="Horror", meta = (DisplayName = "Sprint Meter Updated"))
@@ -39,4 +40,7 @@ protected:
 	/** Passes control to Blueprint to update the sprint meter status */
 	UFUNCTION(BlueprintImplementableEvent, Category="Horror", meta = (DisplayName = "Sprint State Changed"))
 	void BP_SprintStateChanged(bool bSprinting);
+
+private:
+	TWeakObjectPtr<AHorrorCharacter> BoundCharacter;
 };

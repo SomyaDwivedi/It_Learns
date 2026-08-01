@@ -7,6 +7,7 @@
 #include "Styling/CoreStyle.h"
 #include "Styling/SlateTypes.h"
 #include "UI/HorrorMenuSubsystem.h"
+#include "UI/HorrorUIStyle.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SSlider.h"
@@ -17,47 +18,7 @@
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Text/STextBlock.h"
-#include "Brushes/SlateColorBrush.h"
 #include "Brushes/SlateDynamicImageBrush.h"
-
-namespace HorrorMenuStyle
-{
-    const FLinearColor Black(0.006f, 0.008f, 0.011f, 1.0f);
-    const FLinearColor Panel(0.012f, 0.016f, 0.021f, 0.94f);
-    const FLinearColor PanelSoft(0.025f, 0.030f, 0.036f, 0.88f);
-    const FLinearColor Text(0.82f, 0.84f, 0.82f, 1.0f);
-    const FLinearColor Muted(0.38f, 0.42f, 0.41f, 1.0f);
-    const FLinearColor Accent(0.48f, 0.035f, 0.045f, 1.0f);
-    const FLinearColor AccentHover(0.72f, 0.055f, 0.065f, 1.0f);
-
-    const FButtonStyle& GetButtonStyle(bool bDanger)
-    {
-        static const FButtonStyle StandardStyle = []
-        {
-            FButtonStyle Style;
-            Style.SetNormal(FSlateColorBrush(FLinearColor(0.025f, 0.030f, 0.035f, 0.94f)));
-            Style.SetHovered(FSlateColorBrush(FLinearColor(0.075f, 0.025f, 0.030f, 0.98f)));
-            Style.SetPressed(FSlateColorBrush(FLinearColor(0.15f, 0.025f, 0.030f, 1.0f)));
-            Style.SetDisabled(FSlateColorBrush(FLinearColor(0.018f, 0.020f, 0.023f, 0.75f)));
-            Style.SetNormalPadding(FMargin(18.0f, 12.0f));
-            Style.SetPressedPadding(FMargin(19.0f, 13.0f, 17.0f, 11.0f));
-            return Style;
-        }();
-
-        static const FButtonStyle DangerStyle = []
-        {
-            FButtonStyle Style;
-            Style.SetNormal(FSlateColorBrush(FLinearColor(0.08f, 0.012f, 0.016f, 0.96f)));
-            Style.SetHovered(FSlateColorBrush(FLinearColor(0.28f, 0.018f, 0.025f, 1.0f)));
-            Style.SetPressed(FSlateColorBrush(FLinearColor(0.48f, 0.025f, 0.035f, 1.0f)));
-            Style.SetNormalPadding(FMargin(18.0f, 12.0f));
-            Style.SetPressedPadding(FMargin(19.0f, 13.0f, 17.0f, 11.0f));
-            return Style;
-        }();
-
-        return bDanger ? DangerStyle : StandardStyle;
-    }
-}
 
 UHorrorMenuWidget::UHorrorMenuWidget(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -110,7 +71,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::RebuildWidget()
     [
         SNew(SBorder)
         .BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush")))
-        .BorderBackgroundColor(HorrorMenuStyle::Black)
+        .BorderBackgroundColor(HorrorUIStyle::Black)
     ];
 
     if (BackgroundBrush.IsValid())
@@ -163,7 +124,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildMainPage()
 {
     return SNew(SBorder)
         .BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush")))
-        .BorderBackgroundColor(HorrorMenuStyle::Panel)
+        .BorderBackgroundColor(HorrorUIStyle::Panel)
         .Padding(FMargin(42.0f, 36.0f, 42.0f, 30.0f))
         [
             SNew(SVerticalBox)
@@ -172,20 +133,20 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildMainPage()
                 SNew(STextBlock)
                 .Text(FText::FromString(TEXT("IT LEARNS")))
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 52))
-                .ColorAndOpacity(HorrorMenuStyle::Text)
+                .ColorAndOpacity(HorrorUIStyle::Text)
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(2.0f, 2.0f, 0.0f, 18.0f)
             [
                 SNew(STextBlock)
                 .Text(FText::FromString(TEXT("A CO-OP SURVIVAL HORROR EXPERIENCE")))
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), 11))
-                .ColorAndOpacity(HorrorMenuStyle::Muted)
+                .ColorAndOpacity(HorrorUIStyle::Muted)
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 24.0f)
             [
                 SNew(SBorder)
                 .BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush")))
-                .BorderBackgroundColor(HorrorMenuStyle::Accent)
+                .BorderBackgroundColor(HorrorUIStyle::Accent)
                 .Padding(FMargin(0.0f, 1.0f))
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.0f, 5.0f)
@@ -209,7 +170,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildMainPage()
                 SAssignNew(StatusText, STextBlock)
                 .Text(MenuSubsystem.IsValid() ? MenuSubsystem->GetOnlineStatusText() : FText::GetEmpty())
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 10))
-                .ColorAndOpacity(HorrorMenuStyle::Muted)
+                .ColorAndOpacity(HorrorUIStyle::Muted)
             ]
         ];
 }
@@ -218,7 +179,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildPausePage()
 {
     return SNew(SBorder)
         .BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush")))
-        .BorderBackgroundColor(HorrorMenuStyle::Panel)
+        .BorderBackgroundColor(HorrorUIStyle::Panel)
         .Padding(FMargin(44.0f, 36.0f))
         [
             SNew(SVerticalBox)
@@ -227,14 +188,14 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildPausePage()
                 SNew(STextBlock)
                 .Text(FText::FromString(TEXT("PAUSED")))
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 42))
-                .ColorAndOpacity(HorrorMenuStyle::Text)
+                .ColorAndOpacity(HorrorUIStyle::Text)
             ]
             + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.0f, 4.0f, 0.0f, 22.0f)
             [
                 SNew(STextBlock)
                 .Text(FText::FromString(TEXT("ONLINE SESSIONS CONTINUE WHILE THIS MENU IS OPEN")))
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), 9))
-                .ColorAndOpacity(HorrorMenuStyle::Muted)
+                .ColorAndOpacity(HorrorUIStyle::Muted)
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.0f, 5.0f)
             [
@@ -259,7 +220,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildSettingsPage()
 {
     return SNew(SBorder)
         .BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush")))
-        .BorderBackgroundColor(HorrorMenuStyle::Panel)
+        .BorderBackgroundColor(HorrorUIStyle::Panel)
         .Padding(FMargin(46.0f, 36.0f))
         [
             SNew(SVerticalBox)
@@ -268,14 +229,14 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildSettingsPage()
                 SNew(STextBlock)
                 .Text(FText::FromString(TEXT("SETTINGS")))
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 38))
-                .ColorAndOpacity(HorrorMenuStyle::Text)
+                .ColorAndOpacity(HorrorUIStyle::Text)
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.0f, 5.0f, 0.0f, 22.0f)
             [
                 SNew(STextBlock)
                 .Text(FText::FromString(TEXT("VIDEO  /  AUDIO  /  CONTROLS")))
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), 10))
-                .ColorAndOpacity(HorrorMenuStyle::Muted)
+                .ColorAndOpacity(HorrorUIStyle::Muted)
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.0f, 4.0f)
             [
@@ -320,7 +281,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildSettingsPage()
                 SAssignNew(StatusText, STextBlock)
                 .Text(FText::FromString(TEXT("CHANGES TO AUDIO AND CONTROLS APPLY IMMEDIATELY")))
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), 9))
-                .ColorAndOpacity(HorrorMenuStyle::Muted)
+                .ColorAndOpacity(HorrorUIStyle::Muted)
             ]
         ];
 }
@@ -331,7 +292,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildMenuButton(const FText& Label, const
         .HeightOverride(56.0f)
         [
             SNew(SButton)
-            .ButtonStyle(&HorrorMenuStyle::GetButtonStyle(bDanger))
+            .ButtonStyle(&HorrorUIStyle::GetButtonStyle(bDanger))
             .HAlign(HAlign_Fill)
             .VAlign(VAlign_Center)
             .OnClicked(OnClicked)
@@ -341,7 +302,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildMenuButton(const FText& Label, const
                 [
                     SNew(SBorder)
                     .BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush")))
-                    .BorderBackgroundColor(bDanger ? HorrorMenuStyle::AccentHover : HorrorMenuStyle::Accent)
+                    .BorderBackgroundColor(bDanger ? HorrorUIStyle::AccentHover : HorrorUIStyle::Accent)
                     .Padding(FMargin(2.0f, 0.0f))
                 ]
                 + SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
@@ -349,7 +310,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildMenuButton(const FText& Label, const
                     SNew(STextBlock)
                     .Text(Label)
                     .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 17))
-                    .ColorAndOpacity(HorrorMenuStyle::Text)
+                    .ColorAndOpacity(HorrorUIStyle::Text)
                 ]
             ]
         ];
@@ -359,7 +320,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildSettingCycleRow(const FText& Label, 
 {
     return SNew(SBorder)
         .BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush")))
-        .BorderBackgroundColor(HorrorMenuStyle::PanelSoft)
+        .BorderBackgroundColor(HorrorUIStyle::PanelSoft)
         .Padding(FMargin(16.0f, 10.0f))
         [
             SNew(SHorizontalBox)
@@ -368,19 +329,19 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildSettingCycleRow(const FText& Label, 
                 SNew(STextBlock)
                 .Text(Label)
                 .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 12))
-                .ColorAndOpacity(HorrorMenuStyle::Muted)
+                .ColorAndOpacity(HorrorUIStyle::Muted)
             ]
             + SHorizontalBox::Slot().AutoWidth()
             [
                 SNew(SButton)
-                .ButtonStyle(&HorrorMenuStyle::GetButtonStyle(false))
+                .ButtonStyle(&HorrorUIStyle::GetButtonStyle(false))
                 .ContentPadding(FMargin(18.0f, 7.0f))
                 .OnClicked(OnClicked)
                 [
                     SNew(STextBlock)
                     .Text(Value)
                     .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 12))
-                    .ColorAndOpacity(HorrorMenuStyle::Text)
+                    .ColorAndOpacity(HorrorUIStyle::Text)
                     .MinDesiredWidth(150.0f)
                     .Justification(ETextJustify::Center)
                 ]
@@ -392,7 +353,7 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildSliderRow(const FText& Label, float 
 {
     return SNew(SBorder)
         .BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush")))
-        .BorderBackgroundColor(HorrorMenuStyle::PanelSoft)
+        .BorderBackgroundColor(HorrorUIStyle::PanelSoft)
         .Padding(FMargin(16.0f, 12.0f))
         [
             SNew(SVerticalBox)
@@ -404,14 +365,14 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildSliderRow(const FText& Label, float 
                     SNew(STextBlock)
                     .Text(Label)
                     .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 12))
-                    .ColorAndOpacity(HorrorMenuStyle::Muted)
+                    .ColorAndOpacity(HorrorUIStyle::Muted)
                 ]
                 + SHorizontalBox::Slot().AutoWidth()
                 [
                     SNew(STextBlock)
                     .Text(ValueText)
                     .Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 12))
-                    .ColorAndOpacity(HorrorMenuStyle::Text)
+                    .ColorAndOpacity(HorrorUIStyle::Text)
                 ]
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.0f, 10.0f, 0.0f, 0.0f)
@@ -419,8 +380,8 @@ TSharedRef<SWidget> UHorrorMenuWidget::BuildSliderRow(const FText& Label, float 
                 SNew(SSlider)
                 .Value(Value)
                 .StepSize(0.01f)
-                .SliderBarColor(HorrorMenuStyle::Muted)
-                .SliderHandleColor(HorrorMenuStyle::AccentHover)
+                .SliderBarColor(HorrorUIStyle::Muted)
+                .SliderHandleColor(HorrorUIStyle::AccentHover)
                 .OnValueChanged(OnValueChanged)
             ]
         ];

@@ -38,7 +38,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input|Touch Controls")
 	TSubclassOf<UUserWidget> MobileControlsWidgetClass;
 
-	UPROPERTY()
+	// Keep this non-reflected to match the serialized layout used by
+	// BP_HorrorPlayerController on the working Khushpreet branch.
 	TObjectPtr<UUserWidget> MobileControlsWidget;
 
 	UPROPERTY(EditAnywhere, Config, Category="Input|Touch Controls")

@@ -11,63 +11,97 @@
 
 static TSharedPtr<FOnlineSessionSearch> GEOSSessionSearch;
 
-static FDelegateHandle GEOSPortalLoginDelegateHandle;
+static FDelegateHandle GEOSLoginDelegateHandle;
+static bool bGEOSLoginInProgress = false;
 
-static void StartEOSAccountPortalLogin(IOnlineIdentityPtr Identity)
+static bool StartEOSAccountPortalLogin(const IOnlineIdentityPtr& Identity)
 {
     if (!Identity.IsValid())
     {
         UE_LOG(LogTemp, Error, TEXT("EOS AccountPortal Login Failed: Identity invalid"));
-        return;
+        return false;
     }
-
-    if (GEOSPortalLoginDelegateHandle.IsValid())
-    {
-        Identity->ClearOnLoginCompleteDelegate_Handle(0, GEOSPortalLoginDelegateHandle);
-        GEOSPortalLoginDelegateHandle.Reset();
-    }
-
-    GEOSPortalLoginDelegateHandle = Identity->AddOnLoginCompleteDelegate_Handle(
-        0,
-        FOnLoginCompleteDelegate::CreateLambda(
-            [Identity](int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error)
-            {
-                if (Identity.IsValid() && GEOSPortalLoginDelegateHandle.IsValid())
-                {
-                    Identity->ClearOnLoginCompleteDelegate_Handle(LocalUserNum, GEOSPortalLoginDelegateHandle);
-                    GEOSPortalLoginDelegateHandle.Reset();
-                }
-
-                if (bWasSuccessful)
-                {
-                    UE_LOG(LogTemp, Warning, TEXT("EOS AccountPortal Login Success. UserId: %s"), *UserId.ToString());
-                }
-                else
-                {
-                    UE_LOG(LogTemp, Error, TEXT("EOS AccountPortal Login Failed: %s"), *Error);
-                }
-            }
-        )
-    );
 
     FOnlineAccountCredentials Credentials;
     Credentials.Type = TEXT("accountportal");
     Credentials.Id = TEXT("");
     Credentials.Token = TEXT("");
 
-    UE_LOG(LogTemp, Warning, TEXT("Opening Epic AccountPortal login..."));
+    UE_LOG(LogTemp, Warning, TEXT("EOS cached login was unavailable. Opening Epic Account Portal once to create it..."));
+    return Identity->Login(0, Credentials);
+}
 
-    bool bLoginStarted = Identity->Login(0, Credentials);
+static void StartEOSAutoLogin(const IOnlineIdentityPtr& Identity)
+{
+    if (!Identity.IsValid())
+    {
+        UE_LOG(LogTemp, Error, TEXT("EOS Auto Login Failed: Identity invalid"));
+        return;
+    }
+
+    if (Identity->GetLoginStatus(0) == ELoginStatus::LoggedIn)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("EOS Auto Login skipped: User 0 is already logged in"));
+        return;
+    }
+
+    if (bGEOSLoginInProgress)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("EOS Auto Login skipped: A login is already in progress"));
+        return;
+    }
+
+    if (GEOSLoginDelegateHandle.IsValid())
+    {
+        Identity->ClearOnLoginCompleteDelegate_Handle(0, GEOSLoginDelegateHandle);
+        GEOSLoginDelegateHandle.Reset();
+    }
+
+    GEOSLoginDelegateHandle = Identity->AddOnLoginCompleteDelegate_Handle(
+        0,
+        FOnLoginCompleteDelegate::CreateLambda(
+            [Identity](int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error)
+            {
+                bGEOSLoginInProgress = false;
+
+                if (Identity.IsValid() && GEOSLoginDelegateHandle.IsValid())
+                {
+                    Identity->ClearOnLoginCompleteDelegate_Handle(LocalUserNum, GEOSLoginDelegateHandle);
+                    GEOSLoginDelegateHandle.Reset();
+                }
+
+                if (bWasSuccessful)
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("EOS Auto Login Success. UserId: %s"), *UserId.ToString());
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Error, TEXT("EOS Auto Login Failed: %s"), *Error);
+                }
+            }
+        )
+    );
+
+    UE_LOG(LogTemp, Warning, TEXT("Attempting EOS automatic login using command-line or cached credentials..."));
+    bGEOSLoginInProgress = true;
+    bool bLoginStarted = Identity->AutoLogin(0);
 
     if (!bLoginStarted)
     {
-        if (GEOSPortalLoginDelegateHandle.IsValid())
+        bLoginStarted = StartEOSAccountPortalLogin(Identity);
+    }
+
+    if (!bLoginStarted)
+    {
+        bGEOSLoginInProgress = false;
+
+        if (GEOSLoginDelegateHandle.IsValid())
         {
-            Identity->ClearOnLoginCompleteDelegate_Handle(0, GEOSPortalLoginDelegateHandle);
-            GEOSPortalLoginDelegateHandle.Reset();
+            Identity->ClearOnLoginCompleteDelegate_Handle(0, GEOSLoginDelegateHandle);
+            GEOSLoginDelegateHandle.Reset();
         }
 
-        UE_LOG(LogTemp, Error, TEXT("EOS AccountPortal Login Failed: Login did not start"));
+        UE_LOG(LogTemp, Error, TEXT("EOS Auto Login Failed: Neither automatic nor Account Portal login started"));
     }
 }
 
@@ -93,8 +127,8 @@ void UEOSLoginLibrary::LoginEOS(UObject* WorldContextObject)
         return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("LOGIN CODE VERSION: ACCOUNTPORTAL SAFE 008"));
-    StartEOSAccountPortalLogin(Identity);
+    UE_LOG(LogTemp, Warning, TEXT("LOGIN CODE VERSION: PERSISTENT AUTOLOGIN 009"));
+    StartEOSAutoLogin(Identity);
 }
 void UEOSLoginLibrary::CreateEOSSession(UObject* WorldContextObject)
 {
